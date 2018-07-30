@@ -5,7 +5,7 @@ output: html_notebook
 
 # Analysis of The Drum hosts, panellists and guests
 
-This script scrapes data on the hosts, panellists and guests of [The Drum](www.abc.net.au/news/programs/the-drum) from the ABC website. If you just want to grab some tidy data, it's currently in [`drum_tidy.csv`](blob/master/drum_tidy.csv). It goes back a year, as far as I can tell.
+This script scrapes data on the hosts, panellists and guests of [The Drum](www.abc.net.au/news/programs/the-drum) from the ABC website. If you just want to grab some tidy data, it's currently in [`drum_tidy.csv`](drum_tidy.csv). It goes back a year, as far as I can tell.
 
 **Note:** the formatted datetimes in the `dt` column are in UTC! You'll never to convert them to `"Australia/Sydney"` before using them.
 
