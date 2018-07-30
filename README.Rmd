@@ -1,0 +1,130 @@
+---
+title: "Analysis of The Drum hosts, panellists and guests"
+output: html_notebook
+---
+
+This script scrapes data on the hosts, panellists and guests of [The Drum](www.abc.net.au/news/programs/the-drum) from the ABC website. If you just want to grab some tidy data, it's currently in `drum_tidy.csv`. It goes back a year, as far as I can tell.
+
+**&*Note:** the formatted datetimes in the `dt` column are in UTC! You'll never to convert them to `"Australia/Sydney"` before using them.
+
+To grab the data from the ABC site yourself, run this notebook!
+
+```{r, echo = FALSE}
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(rvest)
+library(glue)
+library(stringr)
+
+filter = dplyr::filter
+select = dplyr::select
+```
+
+Let's scrape data from the ABC website and find out how often people appear!
+
+```{r}
+
+drum_url = 'http://www.abc.net.au/news/programs/the-drum/'
+pages = 1:10
+episodes_id = 'collectionId-4'
+
+# download data
+episodes =
+  map_dfr(pages, function(x) {
+    episode_page =
+      read_html(glue('{drum_url}?page={x}')) %>%
+      html_nodes(glue('#{episodes_id} article'))
+    data_frame(
+      title       = episode_page %>% html_nodes('h3') %>% html_text(),
+      description = episode_page %>% html_nodes('p') %>% html_text())
+  }) %>%
+  print()
+  
+```
+
+Okay, let's tidy it up and get the good bits out (regex makes me cry).
+
+```{r}
+episodes %<>%
+  # format the date
+  mutate(
+    ep_date = str_replace_all(title, c("\n\n The Drum " = "", " \n" = "", "- " = "", "\\s$" = "")),
+    dt = parse_date_time(ep_date, orders = "A, B d", tz = "Australia/Sydney")) %>%
+  # isolate the host and people
+  mutate(
+    host = str_extract(description, regex("(?<=Host: )(.*)(?= Panel:)",
+      dotall = TRUE)),
+    panel = str_extract(description,
+      regex(paste0("(?<=Panel: )(.*)(?=( Guest:| Guests:| Interview with:|",
+        "The panel|We have))"),
+      ignore_case = TRUE, dotall = TRUE))) %>%
+  # separate guest and/or interviewees...
+  mutate(
+    guest = str_extract(panel, regex("(?<=Guest: )(.*)$", dotall = TRUE, ignore_case = TRUE)),
+    interviewee = str_extract(panel, regex("(?<=Interview with: )(.*)$", dotall = TRUE, ignore_case = TRUE))) %>%
+  # ... and remove them from the panel
+  mutate(
+    panel = str_replace(panel, regex("Guest: (.*)$"), ""),
+    panel = str_replace(panel, regex("Interview with: (.*)$"), ""),
+    panel = str_replace(panel, "\\.$", "")) %>%
+  select(ep_date, dt, host, panel, guest, interviewee) %>%
+  print()
+```
+
+Okay, now let's break these names up:
+
+```{r}
+episodes %<>%
+  gather(key = "role", value = "name", host, panel, guest, interviewee) %>%
+  separate_rows(name, sep = ", and |, | and ") %>%
+  # remove any trailing spaces that snuck in
+  mutate(name = str_replace_all(name, "\\s$", "")) %T>%
+  write_csv('drum_tidy.csv') %T>%
+  print()
+```
+
+Nowe we can visualise. For example, here are hosts by frequency:
+
+```{r vis-hosts-freq}
+episodes %>%
+  filter(role == "host") %>%
+  group_by(name) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  drop_na(name) %T>%
+  print() %>%
+  {
+    ggplot(., aes(x = reorder(name, n), y = n)) +
+      geom_col() +
+      coord_flip() +
+      theme_minimal() +
+      labs(
+        x = 'Host',
+        y = 'Number of appearances',
+        title = 'The Drum hosts by appearance over the last year')
+  }
+```
+
+And here's guests, panellists and interviewees:
+
+```{r vis-others-freq, fig.height = 12, fig.width = 6}
+episodes %>%
+  filter(role != "host") %>%
+  group_by(name, role) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  drop_na(name) %>%
+  top_n(30, n) %T>%
+  print() %>%
+  {
+    ggplot(., aes(x = reorder(name, n), y = n)) +
+      geom_col() +
+      coord_flip() +
+      theme_minimal(base_size = 8) +
+      labs(
+        x = 'Host',
+        y = 'Number of appearances',
+        title = 'Top 30 non-host appearance on THe Drum over the last year')
+  }
+```
