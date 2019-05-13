@@ -9,6 +9,15 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(rvest)
+library(glue)
+library(stringr)
+
+filter = dplyr::filter
+select = dplyr::select
 ```
 
 
@@ -20,17 +29,7 @@ This script scrapes data on the hosts, panellists and guests of [The Drum](www.a
 
 To grab the data from the ABC site yourself, run this notebook!
 
-```{r, echo = FALSE}
-library(tidyverse)
-library(magrittr)
-library(lubridate)
-library(rvest)
-library(glue)
-library(stringr)
 
-filter = dplyr::filter
-select = dplyr::select
-```
 
 Let's scrape data from the ABC website and find out how often people appear!
 
