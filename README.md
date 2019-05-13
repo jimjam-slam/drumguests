@@ -1,22 +1,68 @@
----
-title: "Analysis of The Drum hosts, panellists and guests"
-output: html_notebook
----
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # Analysis of The Drum hosts, panellists and guests
 
-This script scrapes data on the hosts, panellists and guests of [The Drum](www.abc.net.au/news/programs/the-drum) from the ABC website. If you just want to grab some tidy data, it's currently in [`drum_tidy.csv`](drum_tidy.csv). It goes back a year, as far as I can tell.
+This script scrapes data on the hosts, panellists and guests of [The
+Drum](www.abc.net.au/news/programs/the-drum) from the ABC website. If
+you just want to grab some tidy data, it’s currently in
+[`drum_tidy.csv`](drum_tidy.csv). It goes back to 27 April 2018 (as at
+2019-05-13).
 
-**Note:** the formatted datetimes in the `dt` column are in UTC! You'll never to convert them to `"Australia/Sydney"` before using them.
+**Note:** the formatted datetimes in the `dt` column are in UTC\! You’ll
+need to convert them to `"Australia/Sydney"` before using them.
 
-To grab the data from the ABC site yourself, run this notebook!
+To grab the data from the ABC site yourself, run this notebook\!
 
+    #> Registered S3 methods overwritten by 'ggplot2':
+    #>   method         from 
+    #>   [.quosures     rlang
+    #>   c.quosures     rlang
+    #>   print.quosures rlang
+    #> Registered S3 method overwritten by 'rvest':
+    #>   method            from
+    #>   read_xml.response xml2
+    #> ── Attaching packages ────────────────────────────────────────────── tidyverse 1.2.1 ──
+    #> ✔ ggplot2 3.1.1       ✔ purrr   0.3.2  
+    #> ✔ tibble  2.1.1       ✔ dplyr   0.8.0.1
+    #> ✔ tidyr   0.8.3       ✔ stringr 1.4.0  
+    #> ✔ readr   1.3.1       ✔ forcats 0.4.0
+    #> ── Conflicts ───────────────────────────────────────────────── tidyverse_conflicts() ──
+    #> ✖ dplyr::filter() masks stats::filter()
+    #> ✖ dplyr::lag()    masks stats::lag()
+    #> 
+    #> Attaching package: 'magrittr'
+    #> The following object is masked from 'package:purrr':
+    #> 
+    #>     set_names
+    #> The following object is masked from 'package:tidyr':
+    #> 
+    #>     extract
+    #> 
+    #> Attaching package: 'lubridate'
+    #> The following object is masked from 'package:base':
+    #> 
+    #>     date
+    #> Loading required package: xml2
+    #> 
+    #> Attaching package: 'rvest'
+    #> The following object is masked from 'package:purrr':
+    #> 
+    #>     pluck
+    #> The following object is masked from 'package:readr':
+    #> 
+    #>     guess_encoding
+    #> 
+    #> Attaching package: 'glue'
+    #> The following object is masked from 'package:dplyr':
+    #> 
+    #>     collapse
 
+Let’s scrape data from the ABC website and find out how often people
+appear\!
 
-Let's scrape data from the ABC website and find out how often people appear!
+``` r
 
-
-```r
 drum_url = 'http://www.abc.net.au/news/programs/the-drum/'
 pages = 1:10
 episodes_id = 'collectionId-4'
@@ -27,34 +73,30 @@ episodes =
     episode_page =
       read_html(glue('{drum_url}?page={x}')) %>%
       html_nodes(glue('#{episodes_id} article'))
-    data_frame(
+    tibble(
       title       = episode_page %>% html_nodes('h3') %>% html_text(),
       description = episode_page %>% html_nodes('p') %>% html_text())
   }) %>%
   print()
+#> # A tibble: 250 x 2
+#>    title                    description                                    
+#>    <chr>                    <chr>                                          
+#>  1 "\n\n The Drum Friday M… Host: Ellen Fanning Panel: Kate Mills, David M…
+#>  2 "\n\n Health Care Speci… Host: Ellen Fanning Panel: Pat Turner, Profess…
+#>  3 "\n\n The Drum Wednesda… Host: Kathryn Robinson Panel: Geraldine Doogue…
+#>  4 "\n\n Corangamite Speci… Host: Ellen Fanning Panel: Dr Fiona Gray, Gabr…
+#>  5 "\n\n The Drum Monday M… "Host: Kathryn Robinson Panel: Kathryn Greiner…
+#>  6 "\n\n The Drum Friday M… Host: Ellen Fanning Panel: Nicki Hutley, Peter…
+#>  7 "\n\n The Drum Thursday… Host: Kathryn Robinson Panel: Robyn Parker, Ja…
+#>  8 "\n\n The Drum Wednesda… Host: Kathryn Robinson Panel: Amanda Rose, Kat…
+#>  9 "\n\n The Drum Tuesday … Host: Ellen Fanning Panel: Jenna Price, Scott …
+#> 10 "\n\n The Drum Monday A… In a special episode, our panel of Indigenous …
+#> # … with 240 more rows
 ```
 
-```
-## # A tibble: 250 x 2
-##    title                                 description                      
-##    <chr>                                 <chr>                            
-##  1 "\n\n The Drum Thursday July 26 \n "  Host: Julia Baird Panel: Geraldi~
-##  2 "\n\n The Drum Wednesday July 25 \n " Host: Julia Baird Panel: Alice W~
-##  3 "\n\n The Drum Tuesday July 24 \n "   Host: Peter van Onselen Panel: A~
-##  4 "\n\n The Drum Monday July 23 \n "    Host: Peter van Onselen Panel: E~
-##  5 "\n\n The Drum Friday July 20 \n "    Host: Julia Baird Panel: Sunil B~
-##  6 "\n\n The Drum Thursday July 19 \n "  Host: Peter van Onselen Panel: B~
-##  7 "\n\n The Drum Wednesday July 18 \n " Host: Julia Baird Panel: Nicki H~
-##  8 "\n\n The Drum Tuesday July 17 \n "   Host: Peter van Onselen Panel: K~
-##  9 "\n\n The Drum Monday July 16 \n "    Host: Peter van Onselen Panel: J~
-## 10 "\n\n The Drum Friday July 13 \n "    Host: Peter van Onselen Panel: L~
-## # ... with 240 more rows
-```
+Okay, let’s tidy it up and get the good bits out (regex makes me cry).
 
-Okay, let's tidy it up and get the good bits out (regex makes me cry).
-
-
-```r
+``` r
 episodes %<>%
   # format the date
   mutate(
@@ -79,33 +121,26 @@ episodes %<>%
     panel = str_replace(panel, "\\.$", "")) %>%
   select(ep_date, dt, host, panel, guest, interviewee) %>%
   print()
+#> Warning: 17 failed to parse.
+#> # A tibble: 250 x 6
+#>    ep_date    dt                  host    panel         guest   interviewee
+#>    <chr>      <dttm>              <chr>   <chr>         <chr>   <chr>      
+#>  1 Friday May NA                  Ellen … "Kate Mills,… <NA>    <NA>       
+#>  2 "\n\n Hea… NA                  Ellen … "Pat Turner,… <NA>    <NA>       
+#>  3 Wednesday  NA                  Kathry… "Geraldine D… <NA>    <NA>       
+#>  4 "\n\n Cor… NA                  Ellen … "Dr Fiona Gr… <NA>    <NA>       
+#>  5 Monday Ma… 2019-05-06 00:00:00 Kathry… "Kathryn Gre… "John … <NA>       
+#>  6 Friday Ma… 2019-05-03 00:00:00 Ellen … "Nicki Hutle… "Ece T… <NA>       
+#>  7 Thursday … 2019-05-02 00:00:00 Kathry… "Robyn Parke… "Shane… <NA>       
+#>  8 Wednesday… 2019-05-01 00:00:00 Kathry… "Amanda Rose… <NA>    <NA>       
+#>  9 Tuesday A… 2019-04-30 00:00:00 Ellen … "Jenna Price… "Sarah… <NA>       
+#> 10 Monday Ap… 2019-04-29 00:00:00 <NA>    <NA>          <NA>    <NA>       
+#> # … with 240 more rows
 ```
 
-```
-## Warning: 3 failed to parse.
-```
+Okay, now let’s break these names up:
 
-```
-## # A tibble: 250 x 6
-##    ep_date           dt                  host   panel    guest interviewee
-##    <chr>             <dttm>              <chr>  <chr>    <chr> <chr>      
-##  1 Thursday July 26  2018-07-26 00:00:00 Julia~ Geraldi~ "Bre~ <NA>       
-##  2 Wednesday July 25 2018-07-25 00:00:00 Julia~ "Alice ~ <NA>  <NA>       
-##  3 Tuesday July 24   2018-07-24 00:00:00 Peter~ "Adam C~ <NA>  <NA>       
-##  4 Monday July 23    2018-07-23 00:00:00 Peter~ "Elaine~ <NA>  <NA>       
-##  5 Friday July 20    2018-07-20 00:00:00 Julia~ "Sunil ~ <NA>  <NA>       
-##  6 Thursday July 19  2018-07-19 00:00:00 Peter~ "Bhakth~ <NA>  <NA>       
-##  7 Wednesday July 18 2018-07-18 00:00:00 Julia~ "Nicki ~ <NA>  <NA>       
-##  8 Tuesday July 17   2018-07-17 00:00:00 Peter~ Katie A~ <NA>  <NA>       
-##  9 Monday July 16    2018-07-16 00:00:00 Peter~ James M~ <NA>  <NA>       
-## 10 Friday July 13    2018-07-13 00:00:00 Peter~ "Lisa A~ <NA>  <NA>       
-## # ... with 240 more rows
-```
-
-Okay, now let's break these names up:
-
-
-```r
+``` r
 episodes %<>%
   gather(key = "role", value = "name", host, panel, guest, interviewee) %>%
   separate_rows(name, sep = ", and |, | and ") %>%
@@ -113,29 +148,25 @@ episodes %<>%
   mutate(name = str_replace_all(name, "\\s$", "")) %T>%
   write_csv('drum_tidy.csv') %T>%
   print()
-```
-
-```
-## # A tibble: 1,578 x 4
-##    ep_date           dt                  role  name             
-##    <chr>             <dttm>              <chr> <chr>            
-##  1 Thursday July 26  2018-07-26 00:00:00 host  Julia Baird      
-##  2 Wednesday July 25 2018-07-25 00:00:00 host  Julia Baird      
-##  3 Tuesday July 24   2018-07-24 00:00:00 host  Peter van Onselen
-##  4 Monday July 23    2018-07-23 00:00:00 host  Peter van Onselen
-##  5 Friday July 20    2018-07-20 00:00:00 host  Julia Baird      
-##  6 Thursday July 19  2018-07-19 00:00:00 host  Peter van Onselen
-##  7 Wednesday July 18 2018-07-18 00:00:00 host  Julia Baird      
-##  8 Tuesday July 17   2018-07-17 00:00:00 host  Peter van Onselen
-##  9 Monday July 16    2018-07-16 00:00:00 host  Peter van Onselen
-## 10 Friday July 13    2018-07-13 00:00:00 host  Peter van Onselen
-## # ... with 1,568 more rows
+#> # A tibble: 1,733 x 4
+#>    ep_date                    dt                  role  name            
+#>    <chr>                      <dttm>              <chr> <chr>           
+#>  1 Friday May                 NA                  host  Ellen Fanning   
+#>  2 "\n\n Health Care Special" NA                  host  Ellen Fanning   
+#>  3 Wednesday                  NA                  host  Kathryn Robinson
+#>  4 "\n\n Corangamite Special" NA                  host  Ellen Fanning   
+#>  5 Monday May 6               2019-05-06 00:00:00 host  Kathryn Robinson
+#>  6 Friday May 3               2019-05-03 00:00:00 host  Ellen Fanning   
+#>  7 Thursday May 2             2019-05-02 00:00:00 host  Kathryn Robinson
+#>  8 Wednesday May 1            2019-05-01 00:00:00 host  Kathryn Robinson
+#>  9 Tuesday April 30           2019-04-30 00:00:00 host  Ellen Fanning   
+#> 10 Monday April 29            2019-04-29 00:00:00 host  <NA>            
+#> # … with 1,723 more rows
 ```
 
 Nowe we can visualise. For example, here are hosts by frequency:
 
-
-```r
+``` r
 episodes %>%
   filter(role == "host") %>%
   group_by(name) %>%
@@ -153,29 +184,26 @@ episodes %>%
         y = 'Number of appearances',
         title = 'The Drum hosts by appearance over the last year')
   }
+#> # A tibble: 10 x 2
+#>    name                  n
+#>    <chr>             <int>
+#>  1 Adam Spencer         21
+#>  2 Craig Reucassel      12
+#>  3 Dr Norman Swan        1
+#>  4 Ellen Fanning        93
+#>  5 Fran Kelly            1
+#>  6 John Barron           6
+#>  7 Julia Baird          71
+#>  8 Kathryn Robinson     10
+#>  9 Peter van Onselen    23
+#> 10 Sarah Dingle          7
 ```
 
-```
-## # A tibble: 9 x 2
-##   name                  n
-##   <chr>             <int>
-## 1 Adam Spencer         16
-## 2 Eleanor Hall          4
-## 3 Ellen Fanning        82
-## 4 Hamish Macdonald      1
-## 5 John Barron          14
-## 6 Julia Baird          96
-## 7 Kathryn Robinson      4
-## 8 Peter van Onselen    11
-## 9 Peter Van Onselen     1
-```
+![](README_files/figure-gfm/vis-hosts-freq-1.png)<!-- -->
 
-![plot of chunk vis-hosts-freq](figure/vis-hosts-freq-1.png)
+And here’s guests, panellists and interviewees:
 
-And here's guests, panellists and interviewees:
-
-
-```r
+``` r
 episodes %>%
   filter(role != "host") %>%
   group_by(name, role) %>%
@@ -194,23 +222,20 @@ episodes %>%
         y = 'Number of appearances',
         title = 'Top 30 non-host appearance on THe Drum over the last year')
   }
+#> # A tibble: 31 x 3
+#>    name                role      n
+#>    <chr>               <chr> <int>
+#>  1 Adrian Piccoli      panel     9
+#>  2 Avril Henry         panel     8
+#>  3 Bridie Jabour       panel     8
+#>  4 Caroline Overington panel     7
+#>  5 Craig Chung         panel    10
+#>  6 David Marr          panel     6
+#>  7 Greg Sheridan       panel     9
+#>  8 Jane Caro           panel     7
+#>  9 Jenna Price         panel     7
+#> 10 Jennifer Hewett     panel     6
+#> # … with 21 more rows
 ```
 
-```
-## # A tibble: 45 x 3
-##    name                role      n
-##    <chr>               <chr> <int>
-##  1 Aaron Patrick       panel     7
-##  2 Adam Carrel         panel     6
-##  3 Adam Creighton      panel     8
-##  4 Amanda Rose         panel     5
-##  5 Angela Vithoulkas   panel     9
-##  6 Avril Henry         panel     7
-##  7 Caroline Overington panel    10
-##  8 Dr Darren Saunders  panel     5
-##  9 Elaine Pearson      panel     5
-## 10 Emma Dawson         panel     5
-## # ... with 35 more rows
-```
-
-![plot of chunk vis-others-freq](figure/vis-others-freq-1.png)
+![](README_files/figure-gfm/vis-others-freq-1.png)<!-- -->
